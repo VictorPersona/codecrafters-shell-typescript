@@ -13,7 +13,7 @@ rl.prompt();
 rl.on("line", (input) => {
   const parts = input.split(" ");
   const command = parts[0];
-  const args = input.slice(command.length);
+  const args = input.slice(command.length + 1);
   switch (command) {
     case "exit":
       rl.close();
