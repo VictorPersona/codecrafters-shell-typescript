@@ -11,13 +11,14 @@ const rl = createInterface({
 rl.prompt();
 
 rl.on("line", (command) => {
-  const currcmd = command.split(" ")[0];
+  const parts = command.split(" ");
+  const currcmd = parts[0];
+  const args = parts.slice(1);
   switch (currcmd) {
     case "exit":
       rl.close();
       return;
     case "echo":
-      const args = command.slice(5).trim();
       console.log(args);
       rl.prompt();
       return;
