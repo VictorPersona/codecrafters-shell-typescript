@@ -11,7 +11,8 @@ const rl = createInterface({
 rl.prompt();
 
 rl.on("line", (command) => {
-  switch (command) {
+  const currcmd = command.split(" ")[0];
+  switch (currcmd) {
     case "exit":
       rl.close();
       return;
