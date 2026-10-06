@@ -10,16 +10,16 @@ const rl = createInterface({
 
 rl.prompt();
 
-rl.on("line", (command) => {
-  const parts = command.split(" ");
-  const currcmd = parts[0];
+rl.on("line", (input) => {
+  const parts = input.split(" ");
+  const command = parts[0];
   const args = parts.slice(1);
-  switch (currcmd) {
+  switch (command) {
     case "exit":
       rl.close();
       return;
     case "echo":
-      console.log(args);
+      console.log(args.join(" "));
       rl.prompt();
       return;
     default:
