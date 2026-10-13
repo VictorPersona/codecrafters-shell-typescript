@@ -1,6 +1,8 @@
 import { createInterface } from "readline";
 import fs from "node:fs";
 import path from "node:path";
+import { isBuiltin } from "node:module";
+import { exec, execSync } from "node:child_process";
 const rl = createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -44,6 +46,7 @@ rl.on("line", (input) => {
           const fullPath = path.join(dir, entry.name);
           try {
             fs.accessSync(fullPath, fs.constants.X_OK);
+
             return { doesExist: true, fullPath };
           } catch (error) {
             // console.error(error);
@@ -53,16 +56,34 @@ rl.on("line", (input) => {
     }
     return { doesExist: false };
   };
+  const checkIfExternalExists = (Dirs: string, command: string) => {
+    const dirPath = checkAllDirsForExecute(Dirs, command);
+    if (dirPath != null) {
+      return `${command} is ${dirPath}`;
+    }
+    return `${command}: not found`;
+  };
   const checkAllDirsForExecute = (Dirs: string, command: string) => {
     const dirs = Dirs.split(":");
     // console.error(dirs);
     for (let d of dirs) {
       const dirStatus = checkInDir(d, command);
       if (dirStatus.doesExist) {
-        return `${command} is ${dirStatus.fullPath}`;
+        return dirStatus.fullPath;
       }
     }
-    return `${command}: not found`;
+    return null;
+  };
+  const checkWhetherCommandExists = (command: string) => {
+    if (Object.hasOwn(commandToFunction, command)) {
+      return { doesExist: true, isBuiltin: true };
+    }
+    const givenPath = process.env.PATH || "";
+    const dirPath = checkAllDirsForExecute(givenPath, command);
+    if (dirPath != null) {
+      return { doesExist: true, isBuiltin: false, path: dirPath };
+    }
+    return { doesExist: false };
   };
   const type = (command: string) => {
     if (Object.hasOwn(commandToFunction, command)) {
@@ -72,7 +93,7 @@ rl.on("line", (input) => {
     }
     const givenPath = process.env.PATH || "";
     // console.error(givenPath);
-    console.log(checkAllDirsForExecute(givenPath, command));
+    console.log(checkIfExternalExists(givenPath, command));
     rl.prompt();
   };
 
@@ -94,8 +115,16 @@ rl.on("line", (input) => {
   //     rl.prompt();
   //     break;
   // }
-  if (Object.hasOwn(commandToFunction, command)) {
-    commandToFunction[command](args);
+  const commandExistence = checkWhetherCommandExists(command);
+  if (commandExistence.doesExist) {
+    if (commandExistence.isBuiltin) {
+      commandToFunction[command](args);
+    } else {
+      let executableCommand = `"${command}" ${args}`;
+      // console.error(executableCommand);
+      execSync(executableCommand, { stdio: "inherit" });
+      rl.prompt();
+    }
   } else {
     defaultBehaviour(command);
   }
