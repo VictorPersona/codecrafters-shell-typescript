@@ -57,6 +57,10 @@ const type = (command: string) => {
   }
   return { shouldContinue: true };
 };
+const pwd = () => {
+  console.log(process.cwd());
+  return { shouldContinue: true };
+};
 const commandToFunction: Record<
   string,
   (args: string) => { shouldContinue: boolean }
@@ -64,6 +68,7 @@ const commandToFunction: Record<
   exit,
   echo,
   type,
+  pwd,
 };
 
 const checkWhetherCommandExists = (command: string) => {
